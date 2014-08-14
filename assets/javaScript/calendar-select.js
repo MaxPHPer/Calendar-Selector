@@ -206,7 +206,7 @@ Gum_CalendarSelector.prototype = {
                     $target = $target.parent();
                 }
 
-                if(!$target.hasClass('no-content') && !$target.hasClass('invalid-day')){
+                if(!$target.hasClass('no-content') && !$target.hasClass('invalid-day') && !$target.hasClass('old-day')){
                     date = $target.children('p').text();
 
                     if(!parseInt(date)){
