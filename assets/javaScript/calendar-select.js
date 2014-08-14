@@ -28,7 +28,7 @@ Gum_CalendarSelector.prototype = {
 
     // 生成基本的 DOM 树
      _generateDomTree: function(){
-        var text = '<div id="calendar-selector"><div class="calendar-head"> <div class="calendar-tab check-in"> <h2>选择入住日期</h2> <p></p> </div> <div class="calendar-vbar"></div> <div class="calendar-tab check-out"> <h2>选择入住日期</h2> <p></p> </div> </div> <div class="calendar"> <h2><span class="year">2014年</span><span class="month">8月</span></h2> <table class="date-container"> <thead> <tr> <th>周一</th> <th>周二</th> <th>周三</th> <th>周四</th> <th>周五</th> <th>周六</th> <th>周日</th> </tr> </thead> <tbody></tbody> </table> </div> </div>';
+        var text = '<div id="calendar-selector"><div class="calendar-head"> <div class="calendar-tab check-in"> <h2>选择入住日期</h2> <p></p> </div> <div class="calendar-vbar"></div> <div class="calendar-tab check-out"> <h2>选择离店日期</h2> <p></p> </div> </div> <div class="calendar"> <h2><span class="year">2014年</span><span class="month">8月</span></h2> <table class="date-container"> <thead> <tr> <th>周一</th> <th>周二</th> <th>周三</th> <th>周四</th> <th>周五</th> <th>周六</th> <th>周日</th> </tr> </thead> <tbody></tbody> </table> </div> </div>';
             this.container = $(text); 
             this.container.appendTo($(this.opt.container));
     },
