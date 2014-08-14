@@ -28,4 +28,4 @@
     
 效果图如下:
 
- ![Calendar-Selector](http://ww2.sinaimg.cn/large/6473e757jw1ejc2hvysy4j20hi0qegoa.jpg)
+ ![Calendar-Selector](http://ww3.sinaimg.cn/large/6473e757jw1ejcboou139j20iu0tmad5.jpg)
