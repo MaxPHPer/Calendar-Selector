@@ -229,6 +229,7 @@ Gum_CalendarSelector.prototype = {
                         me._removeInvalideDate();
                         me.container.find('.calendar-tab').last().click();
                     }else{
+                        if($target.hasClass('selected')) { return };
                         $.fn.cookie('checkOutDate', dateInfo);
                         me.selectCheckInDate = true;
                         me.container.find('.calendar-tab').last().click();
