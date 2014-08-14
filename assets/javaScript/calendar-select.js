@@ -1,10 +1,14 @@
+// 日历插件构造函数
 function Gum_CalendarSelector(opt, callback){
     this.opt = $.extend({
-        container: "body",
-        month_rang: 3
+        container: "body",  // 将整个日历插件挂在到该元素下
+        month_rang: 3    // 默认有效期限为 3 个月
     }, opt);
 
+    // 用于表示当前日历点击是否选择入住日期(否则为选择离店日期)
     this.selectCheckInDate = true;
+
+    // 初始化传进来来的回调函数
     this.callback = callback || function(){};
 
     this.init();
@@ -22,19 +26,36 @@ Gum_CalendarSelector.prototype = {
         this._calendarClickEvent();
     },
 
+    // 生成基本的 DOM 树
+     _generateDomTree: function(){
+        var text = '<div id="calendar-selector"><div class="calendar-head"> <div class="calendar-tab check-in"> <h2>选择入住日期</h2> <p></p> </div> <div class="calendar-vbar"></div> <div class="calendar-tab check-out"> <h2>选择入住日期</h2> <p></p> </div> </div> <div class="calendar"> <h2><span class="year">2014年</span><span class="month">8月</span></h2> <table class="date-container"> <thead> <tr> <th>周一</th> <th>周二</th> <th>周三</th> <th>周四</th> <th>周五</th> <th>周六</th> <th>周日</th> </tr> </thead> <tbody></tbody> </table> </div> </div>';
+            this.container = $(text); 
+            this.container.appendTo($(this.opt.container));
+    },
+
+    // 初始化入住日期和离店日期并写入 Cookie
     _initCookie: function(){
+        var date = new Date();
         if(!$.fn.cookie('checkInDate') && !$.fn.cookie('checkOutDate')){
-            var date = new Date();
-            $.fn.cookie('checkInDate', this._formartDate(date));
-            date.setDate(date.getDate() + 1);
-            $.fn.cookie('checkOutDate', this._formartDate(date));
+            this._setCheckDate(date);
+        }else if((new Date($.fn.cookie('checkInDate'))).getDate() < date.getDate()){
+            this._setCheckDate(date);
         }
     },
 
+    // 将通过参数 Date 设置入店日期，并且把离店日期设置为第二天
+    _setCheckDate: function(date){
+        $.fn.cookie('checkInDate', this._formartDate(date));
+        date.setDate(date.getDate() + 1);
+        $.fn.cookie('checkOutDate', this._formartDate(date));
+    },
+
+    // 返回日期对象的字符串形式，如 “2014-8-14”
     _formartDate: function(date){
         return [date.getFullYear(), date.getMonth()+1, date.getDate()].join('-');
     },
 
+    // 初始化日历头部 Tab 相关信息
     _generateCalendarHead: function(){
         var days = ['日', '一', '二', '三', '四', '五', '六'],
             checkInDate = new Date($.fn.cookie('checkInDate')),
@@ -50,6 +71,7 @@ Gum_CalendarSelector.prototype = {
         setCalendarTabInfo($calendarTabs.last(), checkOutDate);
     },
 
+    // 生成所需的日历内容
     _generateCalendars: function(){
         var today = new Date(),
             month = today.getMonth(),
@@ -70,6 +92,7 @@ Gum_CalendarSelector.prototype = {
         this._modifyCalendar();
     },
 
+    // 在 $calendar 容器里，通过 year 和 month 生成一个月的日历
     _generateCalendar: function($calendar, year, month){
         $calendar.find('.year').text(year + "年");
         $calendar.find('.month').text(month + 1 + "月");
@@ -77,6 +100,7 @@ Gum_CalendarSelector.prototype = {
         return $calendar;
     }, 
 
+    // 在 $calendar 容器里，通过 year 和 month 生成一个月的日历的日期部分
     _generateDate: function($calendar, year, month){
         var $tbody = $calendar.children('tbody'), 
             currentDate = new Date(year, month),
@@ -105,6 +129,7 @@ Gum_CalendarSelector.prototype = {
 
     },
 
+    // 加灰不在有效日期内的日期，并把今天日期在日历上显示为 “今天”
     _modifyCalendar: function(){
         var $calendar = this.container.find('.calendar').first(),
             today = new Date(),
@@ -118,9 +143,10 @@ Gum_CalendarSelector.prototype = {
         $calendar = this.container.find('.calendar').last();
         $tds = $calendar.find('td:not(.no-content)');
 
-        $tds.slice(date-2).addClass('invalid-day');
+        $tds.slice(date-1).addClass('invalid-day');
     },
 
+    // 日历头部 Tab 的点击事件
     _calendarTabsEvent: function(){
         var $calendarTabs = this.container.find('.calendar-tab'),
             me = this;
@@ -153,6 +179,7 @@ Gum_CalendarSelector.prototype = {
         $calendarTabs.first().click();
     },
 
+    // 通过一个 Date 对象，返回其在日历中具体的 HTML 元素
     _selectDate: function(date){
         var today = new Date(),
             index = date.getMonth() - today.getMonth(),
@@ -163,6 +190,7 @@ Gum_CalendarSelector.prototype = {
         return $tds.eq(date - 1);
     },
 
+    // 日历中日期的点击事件
     _calendarClickEvent: function(){
         var me = this;
 
@@ -191,12 +219,11 @@ Gum_CalendarSelector.prototype = {
                     dateInfo = year + "-" + month + "-" + date;
 
                     if(me.selectCheckInDate){
-                        $.fn.cookie('checkInDate', dateInfo);
                         dateObj = new Date(dateInfo);
                         if(new Date($.fn.cookie('checkOutDate')) <= dateObj){
-                            dateObj.setDate(parseInt(date) + 1);
-                            dateInfo = me._formartDate(dateObj);
-                            $.fn.cookie('checkOutDate', dateInfo);
+                            me._setCheckDate(dateObj);
+                        }else{
+                            $.fn.cookie('checkInDate', dateInfo);
                         }
                         me.selectCheckInDate = false;
                         me._removeInvalideDate();
@@ -204,6 +231,7 @@ Gum_CalendarSelector.prototype = {
                     }else{
                         $.fn.cookie('checkOutDate', dateInfo);
                         me.selectCheckInDate = true;
+                        me.container.find('.calendar-tab').last().click();
                         me.callback();
                     }
 
@@ -212,6 +240,7 @@ Gum_CalendarSelector.prototype = {
         });
     },
 
+    // 加灰那些在入住日期之前的日期
     _removeInvalideDate: function(){
         var date = new Date($.fn.cookie('checkInDate')),
             currentDate = new Date(),
@@ -219,19 +248,8 @@ Gum_CalendarSelector.prototype = {
             disMonth = date.getMonth() - currentDate.getMonth() + disYear * 12,
             $calendars = this.container.find('.date-container');
 
+        $calendars.slice(0, disMonth).find('td:not(.no-content):not(.invalid-day)').addClass('old-day');
 
-            if(disMonth > 0){
-                $calendars.slice(0, disMonth).find('td:not(.no-content):not(.invalid-day)').addClass('old-day');
-            }
-
-            $calendars.eq(disMonth).find('td:not(no-content)').slice(0, date.getDay() - 1).addClass('old-day');
-
-
-    },
-
-    _generateDomTree: function(){
-        var text = '<div id="calendar-selector"><div class="calendar-head"> <div class="calendar-tab check-in"> <h2>选择入住日期</h2> <p></p> </div> <div class="calendar-vbar"></div> <div class="calendar-tab check-out"> <h2>选择入住日期</h2> <p></p> </div> </div> <div class="calendar"> <h2><span class="year">2014年</span><span class="month">8月</span></h2> <table class="date-container"> <thead> <tr> <th>周一</th> <th>周二</th> <th>周三</th> <th>周四</th> <th>周五</th> <th>周六</th> <th>周日</th> </tr> </thead> <tbody></tbody> </table> </div> </div>';
-            this.container = $(text); 
-            this.container.appendTo($(this.opt.container));
+        $calendars.eq(disMonth).find('td:not(.no-content)').slice(0, date.getDate() - 1).addClass('old-day');
     }
 };
